@@ -89,6 +89,7 @@ class Permissive10X(Logic):
         # The hits are not compatible with any annotated transcript model
         if len(molitem.mappings_record) == 0:
             return 2
+            print ("no mappings", end="")
         # Compatible with one or more transcript models:
         else:
             # Check that there are not different possible genes ??
@@ -149,76 +150,92 @@ class Permissive10X(Logic):
                         
                 if multi_gene:
                     # Many genes are compatible with the observation, do not count
+                    print ("multi 1", end="")
                     return 1
                 else:
                     if not len(molitem.mappings_record):
                         # No gene is compatible with the observation, do not count
+                        print("no records", end="")
                         return 2
                     else:
                         if has_onlyexo_model and not has_onlyintron_model and not has_mixed_model:
                             # More common situation, normal exonic read, count as spliced
                             gene_ix = geneid2ix[transcript_model.geneid]
                             spliced[gene_ix, cell_bcidx] += 1
+                            print(transcript_model.geneid, gene_ix, "s 1", end="")
                             return 0
                         if has_only_span_exin_model:
                             # All the compatible transcript models have spanning exon-intron boundaries, count unspliced
                             gene_ix = geneid2ix[transcript_model.geneid]
                             unspliced[gene_ix, cell_bcidx] += 1
+                            print(transcript_model.geneid, gene_ix, "u 2", end="")
                             return 0
                         if has_onlyintron_and_valid_model and not has_mixed_model and not has_onlyexo_model:
                             if len(segments_list) == 1:
                                 # Singleton in validated intron
                                 gene_ix = geneid2ix[transcript_model.geneid]
                                 unspliced[gene_ix, cell_bcidx] += 1
+                                print(transcript_model.geneid, gene_ix, "u 3", end="")
                                 return 0
                             else:
                                 # Non-singleton in validated intron
                                 gene_ix = geneid2ix[transcript_model.geneid]
                                 unspliced[gene_ix, cell_bcidx] += 1
+                                print(transcript_model.geneid, gene_ix, "u 4", end="")
                                 return 0
                         if has_onlyintron_model and not has_onlyintron_and_valid_model and not has_mixed_model and not has_onlyexo_model:
                             if len(segments_list) == 1:
                                 # Singleton in non-validated intron
                                 gene_ix = geneid2ix[transcript_model.geneid]
                                 unspliced[gene_ix, cell_bcidx] += 1
+                                print(transcript_model.geneid, gene_ix, "u 5", end="")
                                 return 0
                             else:
                                 # Non-singleton in non-validated intron
                                 gene_ix = geneid2ix[transcript_model.geneid]
                                 unspliced[gene_ix, cell_bcidx] += 1
+                                print(transcript_model.geneid, gene_ix, "u 6", end="")
                                 return 0
                         if has_invalid_mixed_model and not has_valid_mixed_model and not has_onlyintron_model and not has_onlyexo_model and not has_only_span_exin_model:
                             # Not validated and mapping to exon and introns, happens rarely in 10X / irrelevant. Count anyways
                             gene_ix = geneid2ix[transcript_model.geneid]
                             unspliced[gene_ix, cell_bcidx] += 1
+                            print(transcript_model.geneid, gene_ix, "u 7", end="")
                             return 0
                         if has_valid_mixed_model and not has_onlyintron_model and not has_onlyexo_model and not has_only_span_exin_model:
                             # Validated and mapping to exon and introns, happens rarely in 10X. Count as unspliced.
                             gene_ix = geneid2ix[transcript_model.geneid]
                             unspliced[gene_ix, cell_bcidx] += 1
+                            print(transcript_model.geneid, gene_ix, "u 8", end="")
                             return 0
                         if has_onlyintron_model and has_onlyexo_model and not has_mixed_model:
                             # Ambiguity among the transcript models compatible with the mapping, most common case! Count ambiguous
                             gene_ix = geneid2ix[transcript_model.geneid]
+                            print(transcript_model.geneid, gene_ix, "a 9", end="")
                             ambiguous[gene_ix, cell_bcidx] += 1
                             return 0
                         if has_onlyintron_model and not has_onlyexo_model and has_mixed_model:
                             # Very rare, at least in 10X.
                             gene_ix = geneid2ix[transcript_model.geneid]
                             unspliced[gene_ix, cell_bcidx] += 1  # this was ambiguous in a previous version
+                            print(transcript_model.geneid, gene_ix, "u 10", end="")
                             return 0
                         if not has_onlyintron_model and has_onlyexo_model and has_mixed_model:
                             # Ambiguity among the transcript models compatible with the mapping. Count ambiguous
                             gene_ix = geneid2ix[transcript_model.geneid]
                             ambiguous[gene_ix, cell_bcidx] += 1
+                            print(transcript_model.geneid, gene_ix, "a 11", end="")
                             return 0
                         if has_onlyintron_model and has_onlyexo_model and has_mixed_model:
                             # Ambiguity among the transcript models compatible with the mapping. Very rare. Count ambiguous
                             gene_ix = geneid2ix[transcript_model.geneid]
                             ambiguous[gene_ix, cell_bcidx] += 1
+                            print(transcript_model.geneid, gene_ix, "a 12", end="")
                             return 0
+                print("no options", end="")
                 return 4
             else:
+                print("multi 2", end="")
                 return 3
                     
 

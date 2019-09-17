@@ -247,13 +247,14 @@ class FeatureIndex:
         # NOTE: Removing first the one with less match and then requiring a splicing matching the transcript model is very stringent
         # It could be that for short ~10bp SKIP sequences the alligner has made a mistake and this might kill the whole molecule
         # NOTE: the code below is not very efficient
-        if len(mapping_record) != 0:
-            # Remove transcript models that are suboptimal match
-            # in alternative one could use len(read.segment)
-            max_n_segments = len(max(mapping_record.values(), key=len))
-            for tm, segmatch_list in list(mapping_record.items()):
-                if len(segmatch_list) < max_n_segments:
-                    del mapping_record[tm]
+       # AD this does not work as intended, it filter outs mapping to single exon or intron, while keeping those to exon/intron boundary
+       # if len(mapping_record) != 0:
+       #     # Remove transcript models that are suboptimal match
+       #     # in alternative one could use len(read.segment)
+       #     max_n_segments = len(max(mapping_record.values(), key=len))
+       #     for tm, segmatch_list in list(mapping_record.items()):
+       #         if len(segmatch_list) < max_n_segments:
+       #             del mapping_record[tm]
 
         # NOTE: the code below is not very efficient, would be nice to avoid for loops
         # NOTE: potentailly bad effects: it could kill a lot of molecules if transcript models are not annotated correctly or missing
