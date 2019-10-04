@@ -108,7 +108,7 @@ class FeatureIndex:
             # Local search for each segment move a little forward (this just moves a coupple of intervals)
             i = self.iidx
             ivl = self.ivls[self.iidx]
-            while i < self.maxiidx and ivl.doesnt_start_after(segment):
+            while ivl.doesnt_start_after(segment): ###AD: i < self.maxiidx will skip the last interval
                 matchtype = 0  # No match
                 if ivl.contains(segment):
                     matchtype = vcy.MATCH_INSIDE
@@ -119,6 +119,8 @@ class FeatureIndex:
 
                 segment_matchtype |= matchtype
                 # move to the next interval
+                if i==self.maxiidx: ###AD now we can check if we reached last interval
+                    break
                 i += 1
                 ivl = self.ivls[i]
             
@@ -159,7 +161,7 @@ class FeatureIndex:
             # Local search for each segment move a little forward (this just moves a couple of intervals)
             i = self.iidx
             feature = self.ivls[self.iidx]
-            while i < self.maxiidx and feature.doesnt_start_after(segment):
+            while feature.doesnt_start_after(segment): ###AD: i < self.maxiidx will skip the last interval: need to fix
                 # NOTE in this way the checks will be repeated for every clone of an interval in each transcript model
                 # I might want to cache the check results of the previous feature
                 if feature.kind == ord("i"):
@@ -185,6 +187,8 @@ class FeatureIndex:
                     raise ValueError(f"Unrecognized type of genomic feature {chr(feature.kind)}")
 
                 #  move to the next interval
+                if i==self.maxiidx: ###AD now we can check if we reached last interval
+                    break
                 i += 1
                 feature = self.ivls[i]
 
@@ -233,7 +237,7 @@ class FeatureIndex:
             # Local search for each segment move a little forward (this just moves a couple of intervals)
             i = self.iidx
             feature = self.ivls[i]
-            while i < self.maxiidx and feature.doesnt_start_after(segment):
+            while feature.doesnt_start_after(segment): ###AD i < self.maxiidx condition will always skip last interval
                 # NOTE in this way the checks will be repeated for every clone of an interval in each transcript model
                 # I might want to cache the check results of the previous feature
                 # it was  if feature.contains(segment) or feature.start_overlaps_with_part_of(segment) or feature.end_overlaps_with_part_of(segment)
@@ -241,6 +245,8 @@ class FeatureIndex:
                 if feature.intersects(segment) and (segment[-1] - segment[0]) > vcy.MIN_FLANK:
                     mapping_record[feature.transcript_model].append(vcy.SegmentMatch(segment, feature, read.is_spliced))
                 #  move to the next interval
+                if i==self.maxiidx: ###AD now check if we reached the end
+                    break
                 i += 1
                 feature = self.ivls[i]
 
@@ -261,9 +267,18 @@ class FeatureIndex:
         if len(mapping_record) != 0:
             # A SKIP mapping needs to be explainaible by some kind of exon-exon exon-intron junction!
             # So if it falls internally, the TM needs to be removed from the mapping record
+           # for tm, segmatch_list in list(mapping_record.items()):
+           #     for sm in segmatch_list:
+           #        if not sm.skip_makes_sense:
+           #             del mapping_record[tm]
+           #             break
+			# AD replacement: remove just the cases where spliced segment overlaps intron. This will still keep novel junctions inside annotated exons
             for tm, segmatch_list in list(mapping_record.items()):
+                if read.start < tm.start or read.end > tm.end : # delete matches where read protrudes outside of transcript region
+                    del mapping_record[tm]
+                    continue
                 for sm in segmatch_list:
-                    if not sm.skip_makes_sense:
+                    if sm.is_spliced and sm.feature.kind == 105 : # delete matches where spliced exon overlaps intron
                         del mapping_record[tm]
                         break
 
