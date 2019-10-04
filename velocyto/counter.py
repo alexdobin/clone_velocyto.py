@@ -851,10 +851,7 @@ class ExInCounter:
         for bcumi, molitem in molitems.items():
             bc = bcumi.split("$")[0]  # extract the bc part from the bc+umi
             bcidx = bc2idx[bc]
-            #fout1.write("%s " % bcumi)
-            print(bcumi, end=" ") ###AD output
             rcode = self.logic.count(molitem, bcidx, dict_layers_columns, self.geneid2ix)
-            print()
             if rcode:
                 failures += 1
                 counter[rcode] += 1
